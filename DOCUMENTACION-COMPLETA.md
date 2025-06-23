@@ -53,6 +53,8 @@ apache-docker-project/
 
 **Explicación**: Este comando crea toda la estructura de directorios necesaria de una sola vez, incluyendo las rutas específicas requeridas para el sitio PwotoSite.cl con sus carpetas html y log.
 
+**Anexo**: Los archivos Unnamed.txt se utilizan para asegurar que los directorios vacíos permanezcan visibles en el sistema de archivos, permitiendo mantener una representación completa de la estructura de carpetas.
+
 ---
 
 ## 3. Configuración de Apache
