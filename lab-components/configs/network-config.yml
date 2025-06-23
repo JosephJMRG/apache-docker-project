@@ -1,0 +1,111 @@
+# Configuración de redes Docker para el laboratorio de penetración testing
+# Proyecto: apache-docker-project
+
+networks:
+  # Red DMZ - Zona desmilitarizada
+  # Contiene servicios web vulnerables accesibles desde el exterior
+  dmz_network:
+    driver: bridge
+    driver_opts:
+      com.docker.network.bridge.name: br-dmz
+    ipam:
+      driver: default
+      config:
+        - subnet: 192.168.90.0/24
+          gateway: 192.168.90.1
+          ip_range: 192.168.90.100/28
+    labels:
+      - "description=DMZ Network for vulnerable web services"
+      - "environment=pentest-lab"
+      - "security.level=medium"
+
+  # Red LAN - Red interna
+  # Contiene servicios internos como bases de datos
+  lan_network:
+    driver: bridge
+    internal: true  # Sin acceso directo a Internet
+    driver_opts:
+      com.docker.network.bridge.name: br-lan
+    ipam:
+      driver: default
+      config:
+        - subnet: 192.168.1.0/24
+          gateway: 192.168.1.1
+          ip_range: 192.168.1.100/28
+    labels:
+      - "description=Internal LAN Network"
+      - "environment=pentest-lab"
+      - "security.level=high"
+
+  # Red de atacantes
+  # Contiene herramientas de penetración testing
+  attacker_network:
+    driver: bridge
+    driver_opts:
+      com.docker.network.bridge.name: br-attack
+    ipam:
+      driver: default
+      config:
+        - subnet: 10.0.0.0/24
+          gateway: 10.0.0.1
+          ip_range: 10.0.0.100/28
+    labels:
+      - "description=Attacker Network for penetration testing tools"
+      - "environment=pentest-lab"
+      - "security.level=low"
+
+  # Red de monitoreo
+  # Para servicios de logging y monitoreo
+  monitoring_network:
+    driver: bridge
+    internal: true
+    driver_opts:
+      com.docker.network.bridge.name: br-monitor
+    ipam:
+      driver: default
+      config:
+        - subnet: 172.20.0.0/24
+          gateway: 172.20.0.1
+    labels:
+      - "description=Monitoring and Logging Network"
+      - "environment=pentest-lab"
+      - "security.level=high"
+
+# Configuración de servicios por red
+service_network_mapping:
+  dmz_services:
+    - apache-server
+    - dvwa
+    - juice-shop
+    - webgoat
+    - mutillidae
+    - ssh-honeypot
+    - ftp-vulnerable
+    
+  lan_services:
+    - mysql-dvwa
+    - mysql-vulnerable
+    
+  attacker_services:
+    - kali-attacker
+    
+  monitoring_services:
+    - elasticsearch
+    - logstash
+    - kibana
+
+# Configuración de firewall por red
+firewall_rules:
+  dmz_to_lan:
+    - allow: tcp/3306  # MySQL desde DMZ a LAN
+    - deny: all        # Denegar todo lo demás
+    
+  attacker_to_dmz:
+    - allow: tcp/80    # HTTP
+    - allow: tcp/443   # HTTPS
+    - allow: tcp/22    # SSH
+    - allow: tcp/21    # FTP
+    - allow: tcp/3000-8999  # Puertos de aplicaciones web
+    
+  attacker_to_lan:
+    - deny: all        # Denegar acceso directo del atacante a LAN
