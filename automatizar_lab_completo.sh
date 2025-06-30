@@ -121,19 +121,43 @@ else
         --pull always
 fi
 
-## 8. CONFIGURAR SEGURIDAD ADICIONAL
+## 8. CONFIGURAR SEGURIDAD ADICIONAL (CORREGIDO)
 echo "=== APLICANDO CONFIGURACIÓN DE SEGURIDAD ==="
 
-# Configurar contenedores para ejecutar como no-root
-docker-compose exec --user root apache-server sh -c '
-    chown -R www-data:www-data /var/www/html && 
-    find /var/www/html -type d -exec chmod 755 {} \; &&
-    find /var/www/html -type f -exec chmod 644 {} \;'
+# Esperar a que los contenedores estén completamente iniciados
+echo "[*] Esperando a que los servicios se inicien completamente..."
+sleep 30
 
-# Habilitar sistemas de archivos de solo lectura donde sea posible
-docker-compose exec --user root dvwa sh -c '
-    apk add --no-cache curl && 
-    chmod -R a-w /app'
+# Verificar que los contenedores estén ejecutándose antes de aplicar configuraciones
+if docker-compose ps | grep -q "apache.*Up"; then
+    echo "[+] Aplicando configuración de seguridad a Apache..."
+    docker-compose exec --user root apache-server sh -c '
+        chown -R www-data:www-data /var/www/html && 
+        find /var/www/html -type d -exec chmod 755 {} \; &&
+        find /var/www/html -type f -exec chmod 644 {} \;' || echo "[!] Apache no disponible, continuando..."
+else
+    echo "[!] Apache no está ejecutándose, saltando configuración de seguridad"
+fi
+
+# Configurar DVWA (detectar tipo de sistema)
+if docker-compose ps | grep -q "dvwa.*Up"; then
+    echo "[+] Configurando DVWA..."
+    # Detectar si es Alpine (apk) o Debian/Ubuntu (apt)
+    if docker-compose exec dvwa sh -c 'which apk' &>/dev/null; then
+        docker-compose exec --user root dvwa sh -c '
+            apk add --no-cache curl && 
+            chmod -R a-w /app' || echo "[!] Error configurando DVWA (Alpine)"
+    elif docker-compose exec dvwa sh -c 'which apt-get' &>/dev/null; then
+        docker-compose exec --user root dvwa sh -c '
+            apt-get update && apt-get install -y curl && 
+            chmod -R a-w /app' || echo "[!] Error configurando DVWA (Debian)"
+    else
+        echo "[!] No se pudo determinar el gestor de paquetes de DVWA"
+    fi
+else
+    echo "[!] DVWA no está ejecutándose, saltando configuración"
+fi
+
 
 ## 9. VERIFICAR ESTADO
 echo "=== VERIFICANDO ESTADO DE CONTENEDORES ==="
