@@ -1,0 +1,190 @@
+#!/bin/bash
+# CONTROLADOR PRINCIPAL DEL LABORATORIO
+# Combina laboratorio principal + Vulhub
+# Ubicación: scripts/management/lab-controller.sh
+
+PROJECT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
+
+# Colores
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+YELLOW='\033[1;33m'
+BLUE='\033[0;34m'
+NC='\033[0m'
+
+show_banner() {
+    echo -e "${BLUE}"
+    echo "╔══════════════════════════════════════════════════════════════╗"
+    echo "║                APACHE DOCKER PROJECT + VULHUB               ║"
+    echo "║              Laboratorio de Penetración Testing             ║"
+    echo "║                        Versión 2.0                          ║"
+    echo "╚══════════════════════════════════════════════════════════════╝"
+    echo -e "${NC}"
+}
+
+show_help() {
+    show_banner
+    cat << EOF
+${BLUE}COMANDOS DISPONIBLES:${NC}
+
+${GREEN}start${NC}        Iniciar laboratorio principal
+${GREEN}stop${NC}         Detener laboratorio principal
+${GREEN}status${NC}       Mostrar estado de todos los servicios
+${GREEN}logs${NC}         Mostrar logs del laboratorio principal
+${GREEN}attack${NC}       Acceder al contenedor Kali Linux
+
+${YELLOW}COMANDOS VULHUB:${NC}
+${GREEN}vulhub${NC}       Gestionar máquinas Vulhub
+${GREEN}deploy${NC}       Desplegar vulnerabilidad específica
+${GREEN}cleanup${NC}      Limpiar todos los entornos
+
+${BLUE}EJEMPLOS:${NC}
+$0 start                    # Iniciar laboratorio
+$0 vulhub apache           # Ver vulnerabilidades Apache
+$0 deploy apache CVE-2021-41773  # Desplegar vulnerabilidad específica
+$0 status                  # Ver estado completo
+$0 cleanup                 # Limpiar todo
+
+EOF
+}
+
+start_lab() {
+    echo -e "${GREEN}[INFO]${NC} Iniciando laboratorio principal..."
+    cd "$PROJECT_DIR"
+    
+    if docker-compose up -d; then
+        echo -e "${GREEN}✓ Laboratorio principal iniciado${NC}"
+        sleep 5
+        show_status
+    else
+        echo -e "${RED}✗ Error iniciando laboratorio${NC}"
+        exit 1
+    fi
+}
+
+stop_lab() {
+    echo -e "${YELLOW}[INFO]${NC} Deteniendo laboratorio principal..."
+    cd "$PROJECT_DIR"
+    
+    if docker-compose down; then
+        echo -e "${GREEN}✓ Laboratorio principal detenido${NC}"
+    else
+        echo -e "${RED}✗ Error deteniendo laboratorio${NC}"
+        exit 1
+    fi
+}
+
+show_status() {
+    echo -e "${YELLOW}=== ESTADO COMPLETO DEL LABORATORIO ===${NC}"
+    
+    echo -e "\n${BLUE}Laboratorio Principal:${NC}"
+    cd "$PROJECT_DIR"
+    docker-compose ps
+    
+    echo -e "\n${BLUE}Vulnerabilidades Vulhub Activas:${NC}"
+    if [ -x "$PROJECT_DIR/scripts/management/deploy-vulhub.sh" ]; then
+        "$PROJECT_DIR/scripts/management/deploy-vulhub.sh" --list-active
+    else
+        echo "Vulhub no disponible"
+    fi
+}
+
+access_attacker() {
+    echo -e "${GREEN}[INFO]${NC} Accediendo al contenedor Kali Linux..."
+    cd "$PROJECT_DIR"
+    
+    if docker-compose ps | grep -q "kali.*Up"; then
+        echo -e "${GREEN}Conectando a Kali Linux...${NC}"
+        docker-compose exec kali-attacker /bin/bash
+    else
+        echo -e "${RED}✗ Contenedor Kali no está activo${NC}"
+        echo "Inicia el laboratorio primero: $0 start"
+    fi
+}
+
+show_logs() {
+    echo -e "${BLUE}Logs del laboratorio principal:${NC}"
+    cd "$PROJECT_DIR"
+    docker-compose logs --tail=50
+}
+
+vulhub_management() {
+    if [ -x "$PROJECT_DIR/scripts/management/deploy-vulhub.sh" ]; then
+        "$PROJECT_DIR/scripts/management/deploy-vulhub.sh" "$@"
+    else
+        echo -e "${RED}✗ Script de Vulhub no encontrado${NC}"
+        echo "Ejecuta el script de automatización principal primero"
+    fi
+}
+
+deploy_specific() {
+    if [ $# -lt 2 ]; then
+        echo -e "${RED}✗ Uso: $0 deploy <categoria> <vulnerabilidad>${NC}"
+        echo "Ejemplo: $0 deploy apache CVE-2021-41773"
+        exit 1
+    fi
+    
+    vulhub_management "$1" "$2"
+}
+
+cleanup_all() {
+    echo -e "${YELLOW}[WARNING]${NC} Esto detendrá TODOS los entornos"
+    read -p "¿Continuar? (y/N): " -r
+    
+    if [[ $REPLY =~ ^[Yy]$ ]]; then
+        echo "Deteniendo laboratorio principal..."
+        stop_lab
+        
+        echo "Deteniendo vulnerabilidades Vulhub..."
+        vulhub_management --cleanup
+        
+        echo -e "${GREEN}✓ Limpieza completa realizada${NC}"
+    fi
+}
+
+# Función principal
+main() {
+    if [ $# -eq 0 ]; then
+        show_help
+        exit 0
+    fi
+    
+    case "$1" in
+        start)
+            start_lab
+            ;;
+        stop)
+            stop_lab
+            ;;
+        status)
+            show_status
+            ;;
+        logs)
+            show_logs
+            ;;
+        attack)
+            access_attacker
+            ;;
+        vulhub)
+            shift
+            vulhub_management "$@"
+            ;;
+        deploy)
+            shift
+            deploy_specific "$@"
+            ;;
+        cleanup)
+            cleanup_all
+            ;;
+        help|--help|-h)
+            show_help
+            ;;
+        *)
+            echo -e "${RED}Error: Comando desconocido '$1'${NC}"
+            show_help
+            exit 1
+            ;;
+    esac
+}
+
+main "$@"

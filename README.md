@@ -1,24 +1,18 @@
-# Apache Docker Project - Laboratorio de Penetración Testing
+# 🎯 Apache Docker Project + Vulhub - Laboratorio Completo de Penetration Testing
 
-[![Docker](https://img.shields.io/badge/Docker-20.10+-blue)](https://www.docker.com/)
-[![License](https://img.shields.io/badge/License-MIT-green)](LICENSE)
-[![Security](https://img.shields.io/badge/Security-Educational%20Only-red)](SECURITY.md)
+[![Docker](https://img.shields.io/bo/badge.shields.io/badge/Securitycripción
 
-## 📋 Descripción
+**Laboratorio completo de penetration testing** que combina aplicaciones web vulnerables con máquinas virtuales adicionales para entrenamientos comprehensivos en ciberseguridad ética. Incluye:
 
-**Laboratorio completo de penetración testing** diseñado para entrenamiento en ciberseguridad ética. Incluye aplicaciones web vulnerables, segmentación de red y herramientas de monitoreo, todo ejecutándose en contenedores Docker.
+- 🌐 **Aplicaciones Web Vulnerables**: DVWA, Juice Shop, WebGoat, Mutillidae
+- 🖥️ **Máquinas Virtuales Adicionales**: Vulhub con 500+ entornos vulnerables
+- 🔒 **Segmentación de Red Avanzada**: DMZ, LAN, redes de atacantes y extendida
+- 📊 **Monitoreo Integrado**: ELK Stack + Prometheus/Grafana
+- 🤖 **Automatización Completa**: Scripts para despliegue y gestión
 
-### ✨ Características Principales
+## 🏗️ Arquitectura Actualizada
 
-- 🌐 **Aplicaciones Vulnerables**: DVWA, Juice Shop, WebGoat, Mutillidae
-- 🔒 **Segmentación de Red**: DMZ, LAN y redes de atacantes
-- 📊 **Monitoreo**: ELK Stack + Prometheus/Grafana
-- 🛡️ **Firewall**: Configuración automatizada con iptables
-- 🔧 **Gestión**: Scripts para backup, restore y control completo
-
-## 🏗️ Arquitectura
-
-
+```
 Internet (WAN)
 │
 ▼
@@ -31,7 +25,7 @@ Internet (WAN)
 │                     DMZ Network (192.168.90.0/24)      │
 │  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐     │
 │  │   Apache    │  │    DVWA     │  │ Juice Shop  │     │
-│  │   :80       │  │    :8080    │  │   :3000     │     │
+│  │   :8080     │  │    :8080    │  │   :3000     │     │
 │  └─────────────┘  └─────────────┘  └─────────────┘     │
 └─────────────────────────────────────────────────────────┘
 │
@@ -43,7 +37,16 @@ Internet (WAN)
 │  │ Vulnerable  │  │   Services  │  │  Attacker   │     │
 │  └─────────────┘  └─────────────┘  └─────────────┘     │
 └─────────────────────────────────────────────────────────┘
-
+│
+▼
+┌─────────────────────────────────────────────────────────┐
+│              Extended Network (192.168.100.0/24)       │
+│  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐     │
+│  │ Metasploita │  │ Ubuntu Vuln │  │ Windows Svr │     │
+│  │   :2223     │  │   :2224     │  │   :3390     │     │
+│  └─────────────┘  └─────────────┘  └─────────────┘     │
+└─────────────────────────────────────────────────────────┘
+```
 
 ## 🚀 Inicio Rápido
 
@@ -51,47 +54,39 @@ Internet (WAN)
 - **Docker Desktop** 20.10+ & **Docker Compose** 2.0+
 - **8 GB RAM** mínimo (16 GB recomendado)
 - **20 GB** espacio libre en disco
-- Puertos **80, 8080, 3000, 8081, 8082, 2222, 21** disponibles
+- Puertos **8080, 3000, 8081, 8082, 2222** disponibles
 
-### Instalación
+### Instalación Automatizada (Recomendada)
 
-
+```bash
 # 1. Clonar repositorio
 git clone https://github.com/JosephJMRG/apache-docker-project.git
 cd apache-docker-project
 
-# 2. Dar permisos a scripts
-chmod +x scripts/**/*.sh
+# 2. Dar permisos de ejecución
+chmod +x automatizar_lab_completo.sh
 
-# 3. Configurar e iniciar
-sudo scripts/setup/setup-networks.sh
-sudo scripts/setup/configure-firewall.sh
-scripts/management/lab-controller.sh start
-
+# 3. Ejecutar automatización completa
+./automatizar_lab_completo.sh
+```
 
 ### Instalación en Windows 11
 
-powershell
+```powershell
 # Como Administrador - Habilitar WSL 2
 dism.exe /online /enable-feature /featurename:Microsoft-Windows-Subsystem-Linux /all /norestart
 dism.exe /online /enable-feature /featurename:VirtualMachinePlatform /all /norestart
 shutdown /r /t 0
 
-# Después del reinicio - Configurar firewall
-New-NetFirewallRule -DisplayName "Apache HTTP" -Direction Inbound -Port 80 -Protocol TCP -Action Allow
-New-NetFirewallRule -DisplayName "DVWA" -Direction Inbound -Port 8080 -Protocol TCP -Action Allow
-New-NetFirewallRule -DisplayName "Juice Shop" -Direction Inbound -Port 3000 -Protocol TCP -Action Allow
-
-# Iniciar laboratorio
-cd apache-docker-project
-.\scripts\management\lab-controller.sh start
-
+# Después del reinicio - Ejecutar script principal
+./automatizar_lab_completo.sh
+```
 
 ## 🎯 Servicios del Laboratorio
 
 | Servicio | URL | Credenciales | Descripción |
 |----------|-----|--------------|-------------|
-| **Apache (PwotoSite)** | http://localhost | - | Servidor web principal |
+| **Apache Principal** | http://localhost:8080 | - | Servidor web principal |
 | **DVWA** | http://localhost:8080 | admin/password | App web vulnerable |
 | **Juice Shop** | http://localhost:3000 | - | OWASP Top 10 |
 | **WebGoat** | http://localhost:8081 | - | Entrenamiento OWASP |
@@ -101,109 +96,129 @@ cd apache-docker-project
 
 ## 🔧 Gestión del Laboratorio
 
+```bash
+# Controlador principal (nuevo)
+./scripts/management/lab-controller.sh [comando]
 
-# Comandos principales
-scripts/management/lab-controller.sh start     # Iniciar laboratorio
-scripts/management/lab-controller.sh status    # Ver estado
-scripts/management/lab-controller.sh attack    # Acceder a Kali Linux
-scripts/management/lab-controller.sh logs      # Ver logs
-scripts/management/lab-controller.sh stop      # Detener laboratorio
+# Comandos disponibles:
+start       # Iniciar laboratorio completo
+stop        # Detener laboratorio
+status      # Ver estado de todos los servicios
+attack      # Acceder a Kali Linux
+logs        # Ver logs del sistema
+cleanup     # Limpiar entorno completo
+vulhub      # Gestionar máquinas Vulhub
+```
 
-# Backup y restore
-scripts/management/backup-lab.sh                           # Crear backup
-scripts/management/restore-lab.sh ./backups/lab-backup-*   # Restaurar
+### Gestión de Máquinas Vulhub
 
+```bash
+# Ver categorías disponibles
+./scripts/management/deploy-vulhub.sh
+
+# Desplegar vulnerabilidad específica
+./scripts/management/deploy-vulhub.sh apache CVE-2021-41773
+
+# Ver entornos activos
+./scripts/management/deploy-vulhub.sh --list-active
+
+# Limpiar entornos Vulhub
+./scripts/management/deploy-vulhub.sh --cleanup
+```
 
 ## 🎯 Escenarios de Pentesting
 
-### Nivel Básico
+### Niveles Integrados
 
-# Reconocimiento de red
-nmap -sn 192.168.90.0/24
-nmap -sS -sV 192.168.90.0/24
+| Nivel | Tipo de Ataque | Herramientas |
+|-------|----------------|--------------|
+| **Básico** | Web Vulnerabilities | SQLMap, Nikto, Dirb |
+| **Intermedio** | Network Exploitation | Metasploit, Nmap avanzado |
+| **Avanzado** | Red Team Operations | Cobalt Strike, Custom Exploits |
+| **Extendido (Vulhub)** | OS-Level Vulnerabilities | Kernel Exploits, Service Vulns |
 
-# Escaneo web básico
-nikto -h http://192.168.90.10:8080
-dirb http://192.168.90.10:8080
+### Comandos de Pentesting
 
-# SQL Injection
-sqlmap -u "http://192.168.90.10:8080/vulnerabilities/sqli/?id=1" --dbs
+```bash
+# Escaneo de red extendida
+nmap -sn 192.168.100.0/24
 
+# Explotación de servicio Windows
+msfconsole -q -x "use exploit/windows/smb/ms17_010_eternalblue; set RHOSTS 192.168.100.12; run"
 
-### Nivel Avanzado
-- Blind SQL Injection y XSS Persistente
-- CSRF Attacks y File Upload Vulnerabilities
-- Movimiento lateral y túneles SSH
-- Custom Exploit Development
+# Análisis de vulnerabilidades con Vulhub
+./scripts/management/lab-controller.sh vulhub spring
+```
 
 ## 🛠️ Configuración Avanzada
 
-### Modo Aislado
+### Despliegue Manual de Vulhub
 
-# Sin acceso a Internet
-docker-compose -f configs/docker/docker-compose-isolated.yml up -d
+```bash
+cd vulhub-extensions/vulhub/apache/CVE-2021-41773
+docker compose up -d
+```
 
-
-### Red Personalizada
+### Redes Personalizadas
 Editar `configs/security/network-config.yml`:
-yaml
+```yaml
 networks:
-  dmz_network:
-    subnet: 192.168.90.0/24  # Personalizar subnet
-  lan_network:
-    subnet: 192.168.1.0/24   # Personalizar subnet
-
+  extended_network:
+    subnet: 192.168.200.0/24  # Personalizar subnet extendida
+```
 
 ## 🔍 Troubleshooting
 
-### Problemas Comunes
+### Soluciones Comunes
 
-**Docker no inicia:**
+**Error "ports are not available":**
+```powershell
+# Solución 1: Detener IIS
+Stop-Service -Name 'W3SVC' -Force
+Stop-Service -Name 'WAS' -Force
 
-systemctl status docker
-sudo systemctl restart docker
+# Solución 2: Reiniciar WinNAT
+net stop winnat
+net start winnat
+```
 
-
-**Problemas de red:**
-
+**Problemas con Vulhub:**
+```bash
+# Verificar redes Docker
 docker network ls
-scripts/setup/setup-networks.sh
 
-
-**Contenedores no se conectan:**
-
-docker exec kali-attacker ping 192.168.90.10
-docker logs dvwa-target
-
+# Conectar contenedor a red específica
+docker network connect lab_extended_network [contenedor]
+```
 
 ## ⚠️ Advertencias de Seguridad
 
 ### 🔴 IMPORTANTE - SOLO PARA LABORATORIO
 
-- Contiene **vulnerabilidades REALES**
-- **NO usar en redes de producción**
-- **Mantener aislado** de sistemas críticos
-- Solo usar en entornos controlados y autorizados
+- Contiene **vulnerabilidades REALES** en aplicaciones y sistemas operativos
+- **NUNCA exponer a internet** - Mantener en red local aislada
+- **Limpiar entornos después de usar** con `./scripts/management/lab-controller.sh cleanup`
+- **Reportar vulnerabilidades críticas** siguiendo políticas de divulgación responsable
 
-### Consideraciones Legales
-- Obtener **autorización escrita** antes de pruebas
-- Respetar **leyes locales** de ciberseguridad
-- No usar para **actividades maliciosas**
-- Reportar vulnerabilidades reales **responsablemente**
+### Consideraciones Legales Actualizadas
+- **Autorización requerida** para cualquier prueba fuera del laboratorio
+- **Registrar todas las actividades** con fines de documentación
+- **No almacenar datos reales** en los sistemas vulnerables
+- **Responsabilidad del usuario** por uso indebido
 
 ## 📄 Licencia y Contribución
 
 **Licencia:** MIT - Solo para uso educativo y ético en ciberseguridad.
 
 **Contribuir:**
+```bash
 1. Fork el repositorio
-2. Crear branch (`git checkout -b feature/nueva-funcionalidad`)
-3. Commit cambios (`git commit -am 'Agregar funcionalidad'`)
-4. Push al branch (`git push origin feature/nueva-funcionalidad`)
-5. Crear Pull Request
+2. Crear branch: git checkout -b feature/nueva-vulnerabilidad
+3. Commit cambios: git commit -am 'Agregar CVE-XXXX-XXXX'
+4. Push al branch: git push origin feature/nueva-vulnerabilidad
+5. Crear Pull Request con documentación detallada
+```
 
 **Soporte:** [GitHub Issues](https://github.com/JosephJMRG/apache-docker-project/issues)
 
----
-
-**Autor:** JosephJMRG | **Versión:** 2.0 | **Última actualización:** Diciembre 2024
+**Autor:** JosephJMRG | **Versión:** 3.0 | **Última actualización:** Junio 2025
