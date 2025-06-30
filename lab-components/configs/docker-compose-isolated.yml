@@ -5,7 +5,6 @@
 # NOTA: Esta configuración NO tiene acceso a Internet
 # Solo para pruebas en entorno completamente aislado
 
-version: '3.8'
 
 services:
   # Servidor Apache existente (PwotoSite.cl)
