@@ -7,8 +7,10 @@ services:
     networks:
       - dmz_network
     ports:
-      - "9990:80"
-    command: ["/usr/sbin/apache2ctl", "-D", "FOREGROUND"]
+      - "8080:80"
+    volumes:
+      - ./www:/var/www
+      - ./config:/etc/apache2/sites-available
     restart: unless-stopped
 
   # Aplicaciones web vulnerables
@@ -18,12 +20,12 @@ services:
     networks:
       - dmz_network
     ports:
-      - "9998:80"
+      - "8080:80"
     environment:
-      MYSQL_ROOT_PASSWORD: password
-      MYSQL_DATABASE: dvwa
-      MYSQL_USER: dvwa
-      MYSQL_PASSWORD: password
+      - MYSQL_ROOT_PASSWORD=password
+      - MYSQL_DATABASE=dvwa
+      - MYSQL_USER=dvwa
+      - MYSQL_PASSWORD=password
     depends_on:
       - mysql-dvwa
     restart: unless-stopped
@@ -34,10 +36,10 @@ services:
     networks:
       - lan_network
     environment:
-      MYSQL_ROOT_PASSWORD: password
-      MYSQL_DATABASE: dvwa
-      MYSQL_USER: dvwa
-      MYSQL_PASSWORD: password
+      - MYSQL_ROOT_PASSWORD=password
+      - MYSQL_DATABASE=dvwa
+      - MYSQL_USER=dvwa
+      - MYSQL_PASSWORD=password
     volumes:
       - dvwa-db:/var/lib/mysql
     restart: unless-stopped
@@ -48,7 +50,7 @@ services:
     networks:
       - dmz_network
     ports:
-      - "9997:3000"
+      - "3000:3000"
     restart: unless-stopped
 
   webgoat:
@@ -57,7 +59,7 @@ services:
     networks:
       - dmz_network
     ports:
-      - "9996:8080"
+      - "8081:8080"
     restart: unless-stopped
 
   mutillidae:
@@ -66,33 +68,38 @@ services:
     networks:
       - dmz_network
     ports:
-      - "9995:80"
+      - "8082:80"
     restart: unless-stopped
 
-  # Contenedor atacante con Kali Linux (ligero)
+  # Contenedor atacante con Kali Linux
   kali-attacker:
-    build:
-      context: .
-      dockerfile: Dockerfile.kali
+    image: kalilinux/kali-rolling-rolling
     container_name: kali-attacker
     networks:
       - dmz_network
       - lan_network
-      - attacker_network
+      - extended_network
     stdin_open: true
     tty: true
-    restart: unless-stopped
-
+    privileged: true
+    volumes:
+      - ./logs/kali:/var/log
+    command: |
+      bash -c "
+        apt-get update && 
+        apt-get install -y nmap nikto dirb sqlmap curl wget net-tools hydra metasploit-framework dnsutils whois &&
+        /bin/bash
+      "
   mysql-target:
     image: mysql:5.7
     container_name: mysql-vulnerable
     networks:
       - lan_network
     environment:
-      MYSQL_ROOT_PASSWORD: root123
-      MYSQL_DATABASE: vulnerable_db
-      MYSQL_USER: testuser
-      MYSQL_PASSWORD: testpass
+      - MYSQL_ROOT_PASSWORD=root123
+      - MYSQL_DATABASE=vulnerable_db
+      - MYSQL_USER=testuser
+      - MYSQL_PASSWORD=testpass
     ports:
       - "3306:3306"
     volumes:
@@ -122,22 +129,28 @@ services:
       - "21:21"
       - "30000-30009:30000-30009"
     environment:
-      PUBLICHOST: 192.168.90.10
-      FTP_USER_NAME: ftpuser
-      FTP_USER_PASS: ftppass
-      FTP_USER_HOME: /home/ftpuser
+      - PUBLICHOST=192.168.90.10
+      - FTP_USER_NAME=ftpuser
+      - FTP_USER_PASS=ftppass
+      - FTP_USER_HOME=/home/ftpuser
     volumes:
       - ftp-data:/home/ftpuser
     restart: unless-stopped
 
 networks:
+  extended_network:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 192.168.100.0/24
+          gateway: 192.168.100.1
   dmz_network:
     driver: bridge
     ipam:
       config:
         - subnet: 192.168.90.0/24
           gateway: 192.168.90.1
-
+  
   lan_network:
     driver: bridge
     internal: true
@@ -145,7 +158,7 @@ networks:
       config:
         - subnet: 192.168.1.0/24
           gateway: 192.168.1.1
-
+  
   attacker_network:
     driver: bridge
     ipam:
@@ -156,5 +169,6 @@ networks:
 volumes:
   dvwa-db:
   mysql-vulnerable:
+  kali-home:
   cowrie-logs:
   ftp-data:

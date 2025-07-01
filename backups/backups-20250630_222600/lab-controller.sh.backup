@@ -90,22 +90,19 @@ show_status() {
 }
 
 access_attacker() {
-    echo -e "${GREEN}[INFO]${NC} Accediendo al contenedor Kali Linux..."
-    cd "$PROJECT_DIR"
-    
+    echo "[INFO] Accediendo al contenedor Kali Linux...";
+    cd "$PROJECT_DIR";
     if docker-compose ps | grep -q "kali.*Up"; then
-        echo -e "${GREEN}Conectando a Kali Linux...${NC}"
+        echo "[INFO] Conectando a Kali Linux...";
         case "$OSTYPE" in
             msys*|cygwin*)
-                winpty docker-compose exec kali-attacker //bin//bash
-                ;;
+                winpty docker-compose exec kali-attacker //bin//bash;;
             *)
-                docker-compose exec kali-attacker /bin/bash
-                ;;
-        esac
+                docker-compose exec kali-attacker /bin/bash;;
+        esac;
     else
-        echo -e "${RED}✗ Contenedor Kali no está activo${NC}"
-        echo "Inicia el laboratorio primero: $0 start"
+        echo "[ERROR] Contenedor Kali no está activo";
+        echo "Inicia el laboratorio primero: $0 start";
     fi
 }
 

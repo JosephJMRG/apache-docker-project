@@ -7,8 +7,8 @@ services:
     networks:
       - dmz_network
     ports:
-      - "9990:80"
-    command: ["/usr/sbin/apache2ctl", "-D", "FOREGROUND"]
+      - "9990:80"          # el puerto que decidas
+    command: ["/usr/sbin/apache2ctl","-D","FOREGROUND"]
     restart: unless-stopped
 
   # Aplicaciones web vulnerables
@@ -20,10 +20,10 @@ services:
     ports:
       - "9998:80"
     environment:
-      MYSQL_ROOT_PASSWORD: password
-      MYSQL_DATABASE: dvwa
-      MYSQL_USER: dvwa
-      MYSQL_PASSWORD: password
+      - MYSQL_ROOT_PASSWORD=password
+      - MYSQL_DATABASE=dvwa
+      - MYSQL_USER=dvwa
+      - MYSQL_PASSWORD=password
     depends_on:
       - mysql-dvwa
     restart: unless-stopped
@@ -34,10 +34,10 @@ services:
     networks:
       - lan_network
     environment:
-      MYSQL_ROOT_PASSWORD: password
-      MYSQL_DATABASE: dvwa
-      MYSQL_USER: dvwa
-      MYSQL_PASSWORD: password
+      - MYSQL_ROOT_PASSWORD=password
+      - MYSQL_DATABASE=dvwa
+      - MYSQL_USER=dvwa
+      - MYSQL_PASSWORD=password
     volumes:
       - dvwa-db:/var/lib/mysql
     restart: unless-stopped
@@ -71,9 +71,7 @@ services:
 
   # Contenedor atacante con Kali Linux (ligero)
   kali-attacker:
-    build:
-      context: .
-      dockerfile: Dockerfile.kali
+    image: kalilinux/kali-rolling
     container_name: kali-attacker
     networks:
       - dmz_network
@@ -81,6 +79,13 @@ services:
       - attacker_network
     stdin_open: true
     tty: true
+    command: >
+      bash -c "
+      apt-get update -qq && 
+      apt-get install -y --no-install-recommends nmap nikto dirb sqlmap hydra curl wget net-tools metasploit-framework >/dev/null 2>&1;
+      echo 'export PATH="$PATH:/usr/bin:/usr/sbin:/usr/local/bin:/usr/local/sbin"' >> /root/.bashrc
+      exec /bin/bash
+      "
     restart: unless-stopped
 
   mysql-target:
@@ -89,10 +94,10 @@ services:
     networks:
       - lan_network
     environment:
-      MYSQL_ROOT_PASSWORD: root123
-      MYSQL_DATABASE: vulnerable_db
-      MYSQL_USER: testuser
-      MYSQL_PASSWORD: testpass
+      - MYSQL_ROOT_PASSWORD=root123
+      - MYSQL_DATABASE=vulnerable_db
+      - MYSQL_USER=testuser
+      - MYSQL_PASSWORD=testpass
     ports:
       - "3306:3306"
     volumes:
@@ -122,10 +127,10 @@ services:
       - "21:21"
       - "30000-30009:30000-30009"
     environment:
-      PUBLICHOST: 192.168.90.10
-      FTP_USER_NAME: ftpuser
-      FTP_USER_PASS: ftppass
-      FTP_USER_HOME: /home/ftpuser
+      - PUBLICHOST=192.168.90.10
+      - FTP_USER_NAME=ftpuser
+      - FTP_USER_PASS=ftppass
+      - FTP_USER_HOME=/home/ftpuser
     volumes:
       - ftp-data:/home/ftpuser
     restart: unless-stopped

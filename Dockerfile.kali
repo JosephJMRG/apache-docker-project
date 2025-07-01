@@ -1,0 +1,23 @@
+FROM kalilinux/kali-rolling
+
+# Establecer repositorios oficiales
+RUN echo "deb http://http.kali.org/kali kali-rolling main non-free contrib" > /etc/apt/sources.list
+
+# Instalar herramientas de pentesting
+RUN apt-get update -y && \
+    apt-get install -y --no-install-recommends \
+      nmap \
+      nikto \
+      dirb \
+      sqlmap \
+      hydra \
+      curl \
+      wget \
+      net-tools \
+      metasploit-framework && \
+    rm -rf /var/lib/apt/lists/*
+
+# Asegurar PATH correcto
+RUN echo 'export PATH="$PATH:/usr/bin:/usr/sbin:/usr/local/bin:/usr/local/sbin"' >> /root/.bashrc
+
+CMD ["/bin/bash"]
