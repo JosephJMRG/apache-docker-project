@@ -1,47 +1,44 @@
-# Usar Ubuntu como base (más compatible)
 FROM ubuntu:20.04
 
-# Evitar prompts interactivos durante la instalación
 ENV DEBIAN_FRONTEND=noninteractive
 
-# Actualizar sistema e instalar Apache
+# Instalar Apache y dependencias
 RUN apt-get update && \
-    apt-get install -y apache2 && \
+    apt-get install -y apache2 curl vim net-tools && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
 
-# Crear estructura de directorios
+# Configurar Apache y crear directorios
 RUN mkdir -p /var/www/PwotoSite.cl/html && \
     mkdir -p /var/www/PwotoSite.cl/log && \
-    mkdir -p /etc/apache2/sites-available && \
-    mkdir -p /etc/apache2/sites-enabled
-
-# Establecer permisos correctos (755 para www)
-RUN chmod 755 /var/www && \
-    chmod 755 /var/www/PwotoSite.cl && \
-    chmod 755 /var/www/PwotoSite.cl/html && \
-    chmod 755 /var/www/PwotoSite.cl/log && \
     chown -R www-data:www-data /var/www/PwotoSite.cl
 
-# Copiar archivos de configuración
-COPY config/apache2.conf /etc/apache2/apache2.conf
-COPY sites-available/PwotoSite.cl.conf /etc/apache2/sites-available/
-COPY www/PwotoSite.cl/html/ /var/www/PwotoSite.cl/html/
-COPY scripts/start-services.sh /usr/local/bin/
-
-# Hacer ejecutable el script
-RUN chmod +x /usr/local/bin/start-services.sh
-
-# Habilitar módulos de Apache necesarios
+# Habilitar módulos
 RUN a2enmod rewrite headers expires deflate
 
-# Habilitar el sitio
-RUN a2ensite PwotoSite.cl.conf && \
-    a2dissite 000-default.conf
+# Copiar configuración
+COPY config/apache/apache2.conf /etc/apache2/apache2.conf
+COPY config/apache/sites/PwotoSite.cl.conf /etc/apache2/sites-available/
 
-# Exponer puerto 80
+# Configurar sitio y ServerName
+RUN a2ensite PwotoSite.cl.conf && a2dissite 000-default.conf && \
+    echo "ServerName localhost" >> /etc/apache2/apache2.conf
+
+# Script de inicio mejorado
+RUN echo '#!/bin/bash\n\
+echo "🔐 Iniciando Apache Docker Project v3.1..."\n\
+echo "Configurando permisos..."\n\
+chown -R www-data:www-data /var/www/PwotoSite.cl\n\
+chmod -R 755 /var/www/PwotoSite.cl\n\
+echo "Verificando configuración..."\n\
+apache2ctl configtest\n\
+echo "Iniciando Apache..."\n\
+exec apache2ctl -D FOREGROUND' > /usr/local/bin/start-apache.sh && \
+    chmod +x /usr/local/bin/start-apache.sh
+
 EXPOSE 80
 
-# Comando de inicio
-CMD ["/usr/local/bin/start-services.sh"]
+HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
+    CMD curl -f http://localhost/ || exit 1
 
+CMD ["/usr/local/bin/start-apache.sh"]

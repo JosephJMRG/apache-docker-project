@@ -1,0 +1,219 @@
+#!/usr/bin/env bash
+# Apache Docker Project - Controlador Principal Optimizado
+# Versión: 3.0
+
+set -euo pipefail
+
+readonly PROJECT_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+readonly CONFIG_DIR="${PROJECT_ROOT}/config"
+readonly DATA_DIR="${PROJECT_ROOT}/data"
+readonly COMPOSE_FILE="${PROJECT_ROOT}/docker-compose.yml"
+
+# Cargar configuración
+if [[ -f "${PROJECT_ROOT}/.env" ]]; then
+    source "${PROJECT_ROOT}/.env"
+fi
+
+readonly LAB_NAME="${LAB_NAME:-apache-docker-lab}"
+readonly LOG_LEVEL="${LOG_LEVEL:-INFO}"
+
+# Colores
+readonly RED='\033[0;31m'
+readonly GREEN='\033[0;32m'
+readonly YELLOW='\033[1;33m'
+readonly BLUE='\033[0;34m'
+readonly NC='\033[0m'
+
+log() {
+    local level="$1"
+    shift
+    local message="$*"
+    local timestamp=$(date '+%Y-%m-%d %H:%M:%S')
+    
+    case "$level" in
+        ERROR) echo -e "${RED}[ERROR]${NC} ${timestamp} - $message" >&2 ;;
+        WARN)  echo -e "${YELLOW}[WARN]${NC}  ${timestamp} - $message" ;;
+        INFO)  echo -e "${BLUE}[INFO]${NC}  ${timestamp} - $message" ;;
+        SUCCESS) echo -e "${GREEN}[SUCCESS]${NC} ${timestamp} - $message" ;;
+    esac
+}
+
+check_prerequisites() {
+    log INFO "Verificando prerrequisitos..."
+    
+    local missing_deps=()
+    command -v docker >/dev/null 2>&1 || missing_deps+=("docker")
+    command -v docker-compose >/dev/null 2>&1 || missing_deps+=("docker-compose")
+    
+    if [[ ${#missing_deps[@]} -gt 0 ]]; then
+        log ERROR "Dependencias faltantes: ${missing_deps[*]}"
+        return 1
+    fi
+    
+    if ! docker info >/dev/null 2>&1; then
+        log ERROR "Docker daemon no está ejecutándose"
+        return 1
+    fi
+    
+    log SUCCESS "Prerrequisitos verificados"
+}
+
+lab_start() {
+    log INFO "Iniciando laboratorio ${LAB_NAME}..."
+    check_prerequisites
+    
+    mkdir -p "${DATA_DIR}"/{logs,backups,uploads,volumes}
+    "${PROJECT_ROOT}/bin/setup" networks
+    
+    docker-compose -f "$COMPOSE_FILE" up -d
+    sleep 30
+    lab_status
+    log SUCCESS "Laboratorio iniciado"
+}
+
+lab_stop() {
+    log INFO "Deteniendo laboratorio..."
+    docker-compose -f "$COMPOSE_FILE" down
+    log SUCCESS "Laboratorio detenido"
+}
+
+lab_status() {
+    log INFO "Estado del laboratorio:"
+    echo ""
+    echo "📊 Contenedores:"
+    docker-compose -f "$COMPOSE_FILE" ps
+    
+    echo ""
+    echo "🌐 Servicios web:"
+    local services=(
+        "Apache:http://localhost:${APACHE_PORT:-9990}"
+        "DVWA:http://localhost:${DVWA_PORT:-9998}"
+        "Juice Shop:http://localhost:${JUICE_SHOP_PORT:-9997}"
+        "WebGoat:http://localhost:${WEBGOAT_PORT:-9996}"
+        "Mutillidae:http://localhost:${MUTILLIDAE_PORT:-9995}"
+    )
+    
+    for service in "${services[@]}"; do
+        local name="${service%%:*}"
+        local url="${service#*:}"
+        
+        if curl -s --connect-timeout 3 "$url" >/dev/null 2>&1; then
+            echo "✅ $name - $url"
+        else
+            echo "❌ $name - $url (no responde)"
+        fi
+    done
+}
+
+lab_restart() {
+    lab_stop
+    sleep 5
+    lab_start
+}
+
+lab_cleanup() {
+    log WARN "Limpiando entorno completo..."
+    read -p "¿Continuar? (y/N): " -r
+    
+    if [[ $REPLY =~ ^[Yy]$ ]]; then
+        docker-compose -f "$COMPOSE_FILE" down -v
+        docker system prune -f
+        log SUCCESS "Limpieza completada"
+    else
+        log INFO "Operación cancelada"
+    fi
+}
+
+access_kali() {
+    log INFO "Accediendo a Kali Linux..."
+    
+    if ! docker-compose -f "$COMPOSE_FILE" ps | grep -q "kali.*Up"; then
+        log ERROR "Contenedor Kali no está ejecutándose"
+        return 1
+    fi
+    
+    docker-compose -f "$COMPOSE_FILE" exec kali-attacker /bin/bash
+}
+
+backup_create() {
+    log INFO "Creando backup..."
+    log INFO "Función de backup no implementada aún"
+}
+
+backup_restore() {
+    local backup_file="$1"
+    if [[ -z "$backup_file" ]]; then
+        log ERROR "Especifica el archivo de backup"
+        return 1
+    fi
+    
+    log INFO "Restaurando backup: $backup_file"
+    log INFO "Función de restore no implementada aún"
+}
+
+vulhub_manage() {
+    log INFO "Gestionando Vulhub..."
+    log INFO "Función de Vulhub no implementada aún"
+}
+
+lab_logs() {
+    local service="${1:-}"
+    
+    if [[ -n "$service" ]]; then
+        docker-compose -f "$COMPOSE_FILE" logs -f "$service"
+    else
+        docker-compose -f "$COMPOSE_FILE" logs -f
+    fi
+}
+
+show_help() {
+    cat << 'HELP'
+Apache Docker Project - Controlador Principal v3.0
+
+COMANDOS:
+  start                 Iniciar laboratorio completo
+  stop                  Detener laboratorio
+  restart               Reiniciar laboratorio
+  status                Mostrar estado de servicios
+  cleanup               Limpiar entorno completo
+  
+  kali                  Acceder a Kali Linux
+  logs [servicio]       Ver logs
+  
+  backup create         Crear backup
+  backup restore <file> Restaurar backup
+  
+  vulhub [comando]      Gestionar vulnerabilidades
+  
+  help                  Mostrar esta ayuda
+
+EJEMPLOS:
+  lab-controller start
+  lab-controller kali
+  lab-controller logs apache-server
+  lab-controller backup create
+
+HELP
+}
+
+main() {
+    case "${1:-help}" in
+        start)     lab_start ;;
+        stop)      lab_stop ;;
+        restart)   lab_restart ;;
+        status)    lab_status ;;
+        cleanup)   lab_cleanup ;;
+        kali)      access_kali ;;
+        logs)      shift; lab_logs "$@" ;;
+        backup)    shift; backup_create ;;
+        vulhub)    shift; vulhub_manage "$@" ;;
+        help|--help|-h) show_help ;;
+        *)
+            log ERROR "Comando desconocido: $1"
+            show_help
+            exit 1
+            ;;
+    esac
+}
+
+main "$@"

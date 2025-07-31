@@ -3,69 +3,173 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PwotoSite.cl - Página Principal</title>
+    <title>PwotoSite.cl - Apache Docker Project</title>
     <style>
         body {
-            font-family: Arial, sans-serif;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             margin: 0;
             padding: 20px;
-            background-color: #f4f4f4;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            min-height: 100vh;
         }
         .container {
-            max-width: 800px;
+            max-width: 1000px;
             margin: 0 auto;
-            background-color: white;
-            padding: 30px;
-            border-radius: 10px;
-            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+            background: rgba(0,0,0,0.2);
+            padding: 40px;
+            border-radius: 15px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+            backdrop-filter: blur(10px);
         }
         h1 {
-            color: #333;
+            text-align: center;
+            font-size: 2.5em;
+            margin-bottom: 20px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+        }
+        .status {
+            background: rgba(76, 175, 80, 0.2);
+            border: 1px solid rgba(76, 175, 80, 0.5);
+            padding: 15px;
+            border-radius: 10px;
+            text-align: center;
+            margin: 20px 0;
+        }
+        .warning {
+            background: rgba(255,107,107,0.2);
+            border: 1px solid rgba(255,107,107,0.5);
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
             text-align: center;
         }
-        .info {
-            background-color: #e7f3ff;
-            padding: 15px;
-            border-left: 4px solid #2196F3;
+        .services {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin: 30px 0;
+        }
+        .service {
+            background: rgba(255,255,255,0.1);
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+            transition: transform 0.3s ease;
+            border: 1px solid rgba(255,255,255,0.2);
+        }
+        .service:hover {
+            transform: translateY(-5px);
+            background: rgba(255,255,255,0.15);
+        }
+        .service h3 {
+            color: #FFD700;
+            margin-bottom: 10px;
+        }
+        .service a {
+            display: inline-block;
+            padding: 12px 24px;
+            background: rgba(255,255,255,0.2);
+            color: white;
+            text-decoration: none;
+            border-radius: 25px;
+            margin-top: 15px;
+            transition: all 0.3s ease;
+            border: 1px solid rgba(255,255,255,0.3);
+        }
+        .service a:hover {
+            background: rgba(255,255,255,0.3);
+            transform: scale(1.05);
+        }
+        .commands {
+            background: rgba(255,255,255,0.1);
+            padding: 20px;
+            border-radius: 10px;
             margin: 20px 0;
         }
-        .success {
-            background-color: #d4edda;
-            color: #155724;
-            padding: 15px;
-            border-radius: 5px;
-            margin: 20px 0;
+        .commands code {
+            background: rgba(0,0,0,0.3);
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-family: 'Courier New', monospace;
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>¡Bienvenido a PwotoSite.cl!</h1>
-        <div class="success">
-            <strong>✓ Servidor Apache funcionando correctamente</strong>
+        <h1>🔐 PwotoSite.cl</h1>
+        <h2 style="text-align: center;">Apache Docker Project - Laboratorio de Pentesting v3.1</h2>
+        
+        <div class="status">
+            <strong>✅ ESTADO:</strong> Apache Server funcionando correctamente<br>
+            <small>Corregido automáticamente el <span id="current-time"></span></small>
         </div>
-        <div class="info">
-            <h3>Información del Servidor:</h3>
+        
+        <div class="warning">
+            <strong>⚠️ ADVERTENCIA DE SEGURIDAD:</strong><br>
+            Este laboratorio contiene vulnerabilidades reales. Usar solo en entornos controlados y aislados.<br>
+            <strong>NO EXPONER A INTERNET</strong>
+        </div>
+        
+        <div class="services">
+            <div class="service">
+                <h3>🌐 DVWA</h3>
+                <p><strong>Damn Vulnerable Web Application</strong></p>
+                <p>Práctica de SQL Injection, XSS, CSRF, File Upload</p>
+                <a href="http://localhost:9998" target="_blank">Acceder a DVWA</a>
+            </div>
+            
+            <div class="service">
+                <h3>🧃 OWASP Juice Shop</h3>
+                <p><strong>Aplicación Moderna Vulnerable</strong></p>
+                <p>OWASP Top 10, desafíos gamificados</p>
+                <a href="http://localhost:9997" target="_blank">Acceder a Juice Shop</a>
+            </div>
+            
+            <div class="service">
+                <h3>🐐 OWASP WebGoat</h3>
+                <p><strong>Plataforma Educativa</strong></p>
+                <p>Lecciones interactivas de seguridad</p>
+                <a href="http://localhost:9996" target="_blank">Acceder a WebGoat</a>
+            </div>
+            
+            <div class="service">
+                <h3>🕷️ OWASP Mutillidae</h3>
+                <p><strong>Aplicación Deliberadamente Vulnerable</strong></p>
+                <p>Vulnerabilidades comunes OWASP Top 10</p>
+                <a href="http://localhost:9995" target="_blank">Acceder a Mutillidae</a>
+            </div>
+        </div>
+        
+        <div class="commands">
+            <h3>🛠️ Comandos Útiles del Laboratorio</h3>
             <ul>
-                <li><strong>Servidor:</strong> Apache HTTP Server</li>
-                <li><strong>Sistema:</strong> Linux (Docker Container)</li>
-                <li><strong>Virtual Host:</strong> Configurado</li>
-                <li><strong>Seguridad:</strong> Implementada</li>
-                <li><strong>Firewall:</strong> Configurado</li>
+                <li><code>./run.sh status</code> - Ver estado del laboratorio</li>
+                <li><code>./run.sh stop</code> - Detener laboratorio</li>
+                <li><code>./run.sh restart</code> - Reiniciar laboratorio</li>
+                <li><code>./monitor-lab.sh</code> - Monitor en tiempo real</li>
+                <li><code>./fix.sh</code> - Reparar problemas automáticamente</li>
             </ul>
         </div>
-        <p>Este sitio web está ejecutándose en un contenedor Docker con Apache HTTP Server, 
-        configurado con virtual host y medidas de seguridad implementadas.</p>
         
-        <h3>Características implementadas:</h3>
-        <ul>
-            <li>Configuración de Virtual Host</li>
-            <li>Estructura de directorios según especificaciones</li>
-            <li>Logs de errores y accesos</li>
-            <li>Permisos de seguridad configurados</li>
-            <li>Firewall con reglas permanentes</li>
-        </ul>
+        <div style="text-align: center; margin-top: 30px; opacity: 0.8;">
+            <p><strong>Apache Docker Project v3.1</strong> - Laboratorio de Ciberseguridad Ética</p>
+            <p>🎯 Para práctica de pentesting autorizado únicamente</p>
+            <p>🔧 Corregido automáticamente por fix.sh</p>
+        </div>
     </div>
+    
+    <script>
+        // Mostrar hora actual
+        document.getElementById('current-time').textContent = new Date().toLocaleString('es-ES');
+        
+        // Actualizar cada minuto
+        setInterval(() => {
+            document.getElementById('current-time').textContent = new Date().toLocaleString('es-ES');
+        }, 60000);
+        
+        console.log('🔐 PwotoSite.cl - Apache Docker Project v3.1 Activo');
+        console.log('✅ Corregido automáticamente');
+    </script>
 </body>
 </html>
-

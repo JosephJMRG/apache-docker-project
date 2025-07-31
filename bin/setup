@@ -1,0 +1,66 @@
+#!/usr/bin/env bash
+# Script de configuración inicial optimizado
+
+set -euo pipefail
+
+readonly PROJECT_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+
+setup_directories() {
+    echo "📁 Creando directorios..."
+    
+    local dirs=(
+        "data/logs"
+        "data/backups"
+        "data/uploads"
+        "data/volumes/mysql"
+        "data/volumes/elasticsearch"
+        "data/volumes/grafana"
+    )
+    
+    for dir in "${dirs[@]}"; do
+        mkdir -p "${PROJECT_ROOT}/${dir}"
+    done
+    
+    echo "✅ Directorios creados"
+}
+
+setup_permissions() {
+    echo "🔒 Configurando permisos..."
+    
+    find "${PROJECT_ROOT}/bin" -type f -exec chmod +x {} \;
+    find "${PROJECT_ROOT}/scripts" -name "*.sh" -exec chmod +x {} \; 2>/dev/null || true
+    chmod -R 755 "${PROJECT_ROOT}/data"
+    
+    echo "✅ Permisos configurados"
+}
+
+setup_networks() {
+    echo "🌐 Configurando redes Docker..."
+    
+    docker network create dmz_network --subnet=192.168.90.0/24 2>/dev/null || true
+    docker network create lan_network --internal --subnet=192.168.1.0/24 2>/dev/null || true
+    docker network create attacker_network --subnet=10.0.0.0/24 2>/dev/null || true
+    docker network create monitoring_network --internal --subnet=172.20.0.0/24 2>/dev/null || true
+    
+    echo "✅ Redes configuradas"
+}
+
+main() {
+    case "${1:-all}" in
+        directories) setup_directories ;;
+        permissions) setup_permissions ;;
+        networks) setup_networks ;;
+        all)
+            setup_directories
+            setup_permissions
+            setup_networks
+            echo "🎉 Setup completado"
+            ;;
+        *)
+            echo "Uso: $0 [directories|permissions|networks|all]"
+            exit 1
+            ;;
+    esac
+}
+
+main "$@"

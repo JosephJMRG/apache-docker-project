@@ -1,0 +1,20 @@
+# Archivos de desarrollo
+*.md
+*.txt
+*.log
+.env
+.git
+.gitignore
+
+# Documentación
+docs/
+README.md
+
+# Datos
+data/
+backups/
+logs/
+
+# Scripts no necesarios para build
+scripts/
+tests/

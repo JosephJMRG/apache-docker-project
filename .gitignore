@@ -1,2 +1,59 @@
-vulhub-extensions/
-vulhub-extensions/vulhub
+# Datos sensibles
+.env.local
+.env.production
+*.key
+*.pem
+
+# Logs
+logs/
+*.log
+
+# Backups y archivos temporales
+data/backups/
+*.tar.gz
+*.zip
+*.backup
+*.tmp
+*.temp
+
+# Datos de volúmenes Docker
+data/volumes/
+
+# IDEs
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Archivos de análisis temporal
+estructura_proyecto_*.txt
+reorganization-backup-*
+optimization-backup-*
+
+# Configuraciones de prueba
+*-isolated.yml
+*-experimental.yml
+*.test
+
+# Archivos de análisis y limpieza temporal
+estructura_proyecto_*.txt
+reorganization-report-*.txt
+reorganize-project.sh
+cleanup-backup-*
+optimization-backup-*
+
+# Scripts de PowerShell redundantes
+script.ps1
+
+# Configuraciones experimentales
+*-isolated.yml
+*-experimental.yml
+*-backup.yml
+
+# Archivos de log temporales
+*.log.tmp
+*.log.old
