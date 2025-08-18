@@ -81,25 +81,33 @@ services:
       - dmz_network
     restart: unless-stopped
 
-  # Kali Linux optimizado para pentesting (MODIFICADO)
+  # Kali Linux optimizado para pentesting (OPTIMIZADO PARA VELOCIDAD)
   kali-attacker:
     build:
       context: .
       dockerfile: Dockerfile.kali
     container_name: kali-attacker
-    networks:
-      - dmz_network
-      - lan_network
+    network_mode: "host" # Usar red del host directamente para máximo rendimiento
     tty: true
     stdin_open: true
     volumes:
       - ./data/uploads:/uploads
       - ./data/logs:/logs
+    dns:
+      - 1.1.1.1 # Cloudflare DNS primario
+      - 1.0.0.1 # Cloudflare DNS secundario
+    deploy:
+      resources:
+        limits:
+          cpus: "2"
+          memory: 2G
     restart: unless-stopped
 
 networks:
   dmz_network:
     driver: bridge
+    driver_opts:
+      com.docker.network.driver.mtu: 1500 # Optimizar MTU
     ipam:
       config:
         - subnet: 172.18.1.0/24
@@ -107,6 +115,8 @@ networks:
   lan_network:
     driver: bridge
     internal: true
+    driver_opts:
+      com.docker.network.driver.mtu: 1500 # Optimizar MTU
     ipam:
       config:
         - subnet: 172.18.2.0/24
