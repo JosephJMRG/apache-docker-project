@@ -81,9 +81,11 @@ services:
       - dmz_network
     restart: unless-stopped
 
-  # Kali Linux para pentesting
+  # Kali Linux optimizado para pentesting (MODIFICADO)
   kali-attacker:
-    image: kalilinux/kali-rolling
+    build:
+      context: .
+      dockerfile: Dockerfile.kali
     container_name: kali-attacker
     networks:
       - dmz_network
@@ -94,7 +96,6 @@ services:
       - ./data/uploads:/uploads
       - ./data/logs:/logs
     restart: unless-stopped
-    command: /bin/bash
 
 networks:
   dmz_network:

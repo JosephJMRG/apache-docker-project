@@ -1,0 +1,29 @@
+FROM kalilinux/kali-rolling
+
+# Configurar variables de entorno para instalación no interactiva
+ENV DEBIAN_FRONTEND=noninteractive
+ENV TZ=America/Santiago
+
+# Actualizar repositorios e instalar herramientas específicas
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    nmap \
+    sqlmap \
+    nikto \
+    dirb \
+    curl \
+    wget \
+    net-tools \
+    iputils-ping \
+    dnsutils \
+    whois \
+    && apt-get autoremove -y \
+    && apt-get autoclean \
+    && rm -rf /var/lib/apt/lists/* \
+    && rm -rf /tmp/* \
+    && rm -rf /var/tmp/*
+
+# Crear directorio de trabajo
+WORKDIR /root
+
+# Mantener el contenedor corriendo
+CMD ["/bin/bash"]
