@@ -120,14 +120,22 @@ apache-docker-project/
    ./run.sh kali
    ```
 
-   Algunos comandos de pentesting útiles:
+   Ejecuta estos comandos luego de entrar a la máquina Kali
 
-   ```bash
-   nmap -sS -sV 192.168.90.0/24
-   sqlmap -u "http://localhost:9998/vulnerabilities/sqli/?id=1&Submit=Submit" --cookie="security=low; PHPSESSID=xxx" --dbs
-   nikto -h http://localhost:9997
-   dirb http://localhost:9997
-   ```
+```bash
+apt-get update
+# luego
+apt-get install -y nmap sqlmap nikto dirb
+```
+
+Algunos comandos de pentesting útiles:
+
+```bash
+nmap -sS -sV 192.168.90.0/24
+sqlmap -u "http://localhost:9998/vulnerabilities/sqli/?id=1&Submit=Submit" --cookie="security=low; PHPSESSID=xxx" --dbs
+nikto -h http://localhost:9997
+dirb http://localhost:9997
+```
 
 ## 🏢 Arquitectura y redes
 
